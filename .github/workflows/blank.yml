@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Nome da máquina virtual
+VM="MeuPCVirtual"
+ISO="/caminho/para/sua-imagem.iso"
+NET_I="natnetwork"
+
+echo "Criando a máquina virtual: $VM"
+
+# Criar VM
+VBoxManage createvm --name "$VM" --ostype "Linux_64" --register
+
+# Criar disco rígido virtual (8 GB)
+VBoxManage createhd --filename "$VM.vdi" --size 8000
+
+# Adicionar controladora SATA e disco
+VBoxManage storagectl "$VM" --name "SATA Controller" --add sata --controller IntelAHCI
+VBoxManage storageattach "$VM" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$VM.vdi"
+
+# Adicionar leitor de CD/DVD com a ISO
+VBoxManage storagectl "$VM" --name "IDE Controller" --add ide
+VBoxManage storageattach "$VM" --storagectl "IDE Controller" --port 0 --device 0 --type dvddrive --medium "$ISO"
+
+# Configurar memória e boot
+VBoxManage modifyvm "$VM" --ioapic on
+VBoxManage modifyvm "$VM" --boot1 dvd --boot2 disk --boot3 none --boot4 none
+VBoxManage modifyvm "$VM" --memory 2048 --vram 128
+VBoxManage modifyvm "$VM" --nic1 nat
+
+echo "Máquina virtual criada com sucesso!"
